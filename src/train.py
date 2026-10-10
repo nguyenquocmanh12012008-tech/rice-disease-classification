@@ -19,7 +19,7 @@ from src.dataset import (
 from src.evaluate import evaluate_model
 from src.model import DenseNetB121
 
-EPOCHS = 1
+EPOCHS = 10
 ADAM_EPSILON = 0.05
 
 
