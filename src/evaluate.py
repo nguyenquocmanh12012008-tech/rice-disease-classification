@@ -31,14 +31,14 @@ def evaluate_model(
 
     with torch.no_grad():
         for features, labels in data_loader:
-            features = features.to(device)
-            labels = labels.to(device)
+            features = features.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
 
             outputs = model(features)
             loss = loss_function(outputs, labels)
             batch_size = features.size(0)
             predictions = outputs.argmax(dim=1)
-            true_labels = labels.argmax(dim=1)
+            true_labels = labels
 
             running_loss += loss.item() * batch_size
             running_correct += (predictions == true_labels).sum().item()
