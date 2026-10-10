@@ -2,7 +2,7 @@
 
 A PyTorch image-classification project based on a custom DenseNet-style model for rice leaf disease images from the [Paddy Doctor Kaggle competition](https://www.kaggle.com/competitions/paddy-disease-classification).
 
-> **Implementation and test status:** The original notebook had incomplete or misspelled model definitions; the modules below repair those defects while preserving its architecture and training logic. The default epoch count has been increased to 10. The Kaggle notebook's one-epoch baseline reported 56.37% validation accuracy; a longer run is needed to determine whether 10 epochs improves validation performance. The Kaggle outputs and dataset are not included in this repository.
+> **Implementation and test status:** The original notebook had incomplete or misspelled model definitions; the modules below repair those defects while preserving its custom DenseNet architecture. The current training code uses train-only augmentation, a stratified validation split, AdamW, and a learning-rate scheduler, with 10 epochs by default. These changes have not been run, so no accuracy or loss improvement is claimed. The historical one-epoch result below used the earlier pipeline and is not directly comparable. The Kaggle outputs and dataset are not included in this repository.
 
 ## Table of Contents
 
@@ -36,7 +36,7 @@ The author selected [Paddy Doctor: Paddy Disease Classification](https://www.kag
 
 The refactored loader expects the training images under train_images/. It uses torchvision.datasets.ImageFolder, whose class-to-index mapping follows the folder names. The mapping is saved to results/class_to_idx.json after training. The 3,469 competition test images are not used for local evaluation because their labels are not provided.
 
-The training notebook splits the labeled images randomly into training and validation subsets: int(0.2 * N) validation images and the remainder for training, using a torch.Generator seeded with 123. This split is not stratified. No dataset is included in the repository; see [data/README.md](data/README.md).
+The training pipeline creates a class-stratified split with int(0.2 * N) validation images and the remainder for training, using seed 123. No dataset is included in the repository; see [data/README.md](data/README.md).
 
 ## Technologies Used
 
@@ -99,7 +99,7 @@ Use Python 3.10 or newer. Place the competition files in the layout described in
 
 ## Training
 
-The training default is now 10 epochs. Other settings remain batch size 32, four data-loader workers, Adam with eps=0.05 and the PyTorch default learning rate, and cross-entropy loss. Images are resized to 224 × 224 and converted to tensors in the [0, 1] range. No additional normalization or augmentation is applied. Validation metrics are reported after every epoch; more epochs do not guarantee higher validation accuracy.
+The training default is 10 epochs. The pipeline uses batch size 32, four data-loader workers, AdamW (learning rate 0.001, eps=1e-8, weight decay 1e-4), cross-entropy loss, and ReduceLROnPlateau to lower the learning rate when validation loss stops improving. Training images receive horizontal flips, small rotations, and mild color jitter. Training, validation, and inference images are resized to 224 × 224 and normalized with ImageNet channel statistics. The validation split is stratified and seeded. The saved checkpoint is the epoch with the highest validation accuracy; ties are resolved by lower validation loss. These are changes intended to help generalization, not guaranteed outcomes; the updated 10-epoch pipeline has not been run.
 
 Run from the repository root:
 
@@ -113,20 +113,20 @@ On Kaggle, pass the competition path you provided:
 python -m src.train --data-root /kaggle/input/competitions/paddy-disease-classification --epochs 10
 ~~~
 
-The code saves the final model state dictionary, epoch history, and class mapping under results/. The modular command-line entry point has not been run independently; the notebook test results are recorded below.
+The code saves the best-validation-accuracy model state dictionary, epoch history (including the selected epoch), and class mapping under results/. The modular command-line entry point has not been run independently.
 
 ## Evaluation Metrics and Results
 
 The training pipeline records cross-entropy loss and accuracy for the training and validation subsets after each epoch. src.evaluate evaluates the same seeded validation split and reports validation loss and accuracy.
 
-The Kaggle run of `notebooks/rice_densenet_training.ipynb` used CUDA and completed one epoch on the 10,407 labeled images. The seeded random split contained 8,326 training images and 2,081 validation images. The custom model had 6,912,818 parameters.
+The historical Kaggle run of `notebooks/rice_densenet_training.ipynb` used CUDA and completed one epoch on the 10,407 labeled images. Its earlier random split contained 8,326 training images and 2,081 validation images. The custom model had 6,912,818 parameters. This run preceded the updated augmentation, stratified split, and optimizer settings documented above.
 
 | Metric | Training | Validation |
 | --- | ---: | ---: |
 | Loss | 1.6619 | 1.3716 |
 | Accuracy | 42.37% | 56.37% |
 
-The epoch took 81.5 seconds. These are one-epoch holdout metrics, not a Kaggle leaderboard score. The notebook also ran inference over the competition test images and created `submission.csv`; the file was not submitted to the competition. The checkpoint, history, class mapping, and submission remain in the Kaggle session at `/kaggle/working/results/`. They are not included in this repository, and the modular `src.train` and `src.evaluate` commands have not been independently tested.
+The epoch took 81.5 seconds. These are historical one-epoch holdout metrics, not a Kaggle leaderboard score and not results from the updated 10-epoch pipeline. The notebook also ran inference over the competition test images and created `submission.csv`; the file was not submitted to the competition. The checkpoint, history, class mapping, and submission remain in the Kaggle session at `/kaggle/working/results/`. They are not included in this repository. No new results are recorded because the updated training code has not been run.
 
 After training, evaluate the saved model with:
 
@@ -142,8 +142,8 @@ The notebook at `notebooks/rice_densenet_training.ipynb` provides `predict_image
 
 ## Limitations
 
-- The validation split is random and not stratified.
-- No data augmentation or image normalization beyond ToTensor() is used.
+- The updated training pipeline has not been run; its effect on validation metrics is unmeasured.
+- The custom DenseNet is trained from scratch and may need more than 10 epochs for convergence.
 - The competition dataset and generated checkpoint/results are not included in this repository; they remain in the Kaggle session.
 - Performance on field images, including images from Central Vietnam, has not been evaluated.
 - Similar disease symptoms, lighting, background, camera angle, and image quality may affect predictions.
@@ -151,8 +151,8 @@ The notebook at `notebooks/rice_densenet_training.ipynb` provides `predict_image
 
 ## Future Improvements
 
-- Run the modular `src.train` and `src.evaluate` entry points independently and record their results.
-- Consider a stratified validation split and additional metrics such as per-class precision, recall, F1-score, and a confusion matrix.
+- Run the updated 10-epoch pipeline and record its results before comparing it with the historical baseline.
+- Add per-class precision, recall, F1-score, and a confusion matrix to the evaluation report.
 - Evaluate on representative field images collected in Vietnam.
 - Add a dedicated `predict.py` command and verify checkpoint reload and class mapping.
 - Pin compatible Python, PyTorch, and Torchvision versions once the target environment is chosen.
