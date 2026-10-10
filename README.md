@@ -49,16 +49,16 @@ The notebook did not record dependency versions or a Python version. requirement
 
 ## DenseNet Architecture
 
-The notebook defines a custom DenseNetB121 model; it does not use torchvision's pretrained DenseNet. Its dense blocks concatenate each layer's newly generated feature maps with the feature maps already present. Each bottleneck uses a 1x1 convolution to expand to 4 Ă— growth_rate channels, then a 3x3 convolution to produce growth_rate new channels. Transition layers apply BatchNorm and ReLU, halve the channel count with a 1x1 convolution, and halve the feature-map dimensions with average pooling.
+The notebook defines a custom DenseNetB121 model; it does not use torchvision's pretrained DenseNet. Its dense blocks concatenate each layer's newly generated feature maps with the feature maps already present. Each bottleneck uses a 1x1 convolution to expand to 4 × growth_rate channels, then a 3x3 convolution to produce growth_rate new channels. Transition layers apply BatchNorm and ReLU, halve the channel count with a 1x1 convolution, and halve the feature-map dimensions with average pooling.
 
 | Component | Configuration read from the notebook |
 | --- | --- |
-| Input | RGB image resized to 224 Ă— 224 |
-| Stem | BatchNorm â†’ ReLU â†’ 7x7 convolution (64 channels, stride 2) â†’ 3x3 max pooling (stride 2) |
+| Input | RGB image resized to 224 × 224 |
+| Stem | BatchNorm → ReLU → 7x7 convolution (64 channels, stride 2) → 3x3 max pooling (stride 2) |
 | Dense blocks | 6, 12, 24, and 16 bottleneck layers |
 | Growth rate | 32 channels |
 | Transitions | After the first three blocks; channel count and spatial dimensions are each halved |
-| Head | Adaptive global average pooling â†’ fully connected layer â†’ raw logits |
+| Head | Adaptive global average pooling → fully connected layer → raw logits |
 | Classes | 10, matching the competition training folders |
 
 The initial BatchNorm/ReLU-before-convolution order is retained as written in the notebook. The model code fixes the notebook's missing DenseBlock forward method, class-name mismatches, misspelled third transition references, and lowercase nn.linear typo. The notebook had no usable checkpoint, so compatibility with an existing trained weight file could not be checked.
@@ -67,21 +67,21 @@ The initial BatchNorm/ReLU-before-convolution order is retained as written in th
 
 ~~~text
 .
-â”œâ”€â”€ data/
-â”‚   â””â”€â”€ README.md
-â”œâ”€â”€ notebooks/
-â”‚   â”œâ”€â”€ rice_densenet_training.ipynb
-â”‚   â””â”€â”€ original/
-â”‚       â””â”€â”€ qmanh.ipynb
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ __init__.py
-â”‚   â”œâ”€â”€ dataset.py
-â”‚   â”œâ”€â”€ evaluate.py
-â”‚   â”œâ”€â”€ model.py
-â”‚   â””â”€â”€ train.py
-â”œâ”€â”€ .gitignore
-â”œâ”€â”€ README.md
-â””â”€â”€ requirements.txt
+├── data/
+│   └── README.md
+├── notebooks/
+│   ├── rice_densenet_training.ipynb
+│   └── original/
+│       └── qmanh.ipynb
+├── src/
+│   ├── __init__.py
+│   ├── dataset.py
+│   ├── evaluate.py
+│   ├── model.py
+│   └── train.py
+├── .gitignore
+├── README.md
+└── requirements.txt
 ~~~
 
 Training creates results/densenetb121_paddy.pth, results/history.json, and results/class_to_idx.json. The original notebook is preserved at notebooks/original/qmanh.ipynb. The runnable notebook at notebooks/rice_densenet_training.ipynb includes single-image prediction and optional Kaggle test-set submission generation; there is no separate predict.py module.
@@ -99,7 +99,7 @@ Use Python 3.10 or newer. Place the competition files in the layout described in
 
 ## Training
 
-The training default is now 10 epochs. Other settings remain batch size 32, four data-loader workers, Adam with eps=0.05 and the PyTorch default learning rate, and cross-entropy loss. Images are resized to 224 Ă— 224 and converted to tensors in the [0, 1] range. No additional normalization or augmentation is applied. Validation metrics are reported after every epoch; more epochs do not guarantee higher validation accuracy.
+The training default is now 10 epochs. Other settings remain batch size 32, four data-loader workers, Adam with eps=0.05 and the PyTorch default learning rate, and cross-entropy loss. Images are resized to 224 × 224 and converted to tensors in the [0, 1] range. No additional normalization or augmentation is applied. Validation metrics are reported after every epoch; more epochs do not guarantee higher validation accuracy.
 
 Run from the repository root:
 
@@ -159,6 +159,6 @@ The notebook at `notebooks/rice_densenet_training.ipynb` provides `predict_image
 
 ## Author
 
-- **Name:** Nguyá»…n Quá»‘c Máº¡nh
+- **Name:** Nguyễn Quốc Mạnh
 - **GitHub:** [nguyenquocmanh12012008-tech](https://github.com/nguyenquocmanh12012008-tech)
 - **Kaggle notebook:** [DenseNet training notebook](https://www.kaggle.com/code/qucmnhh/notebook11b63cb064/edit)
