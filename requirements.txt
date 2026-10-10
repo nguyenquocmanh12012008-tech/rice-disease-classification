@@ -1,0 +1,4 @@
+# Versions were not recorded by the source notebook.
+torch
+torchvision
+matplotlib

@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
+
+# Downloaded competition data and generated model artifacts
+/data/raw/
+/checkpoints/
+/outputs/
+/results/
+*.pt
+*.pth
+*.ckpt
