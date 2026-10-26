@@ -2,7 +2,7 @@
 
 A PyTorch image-classification project based on a custom DenseNet-style model for rice leaf disease images from the [Paddy Doctor Kaggle competition](https://www.kaggle.com/competitions/paddy-disease-classification).
 
-> **Implementation and test status:** The original notebook had incomplete or misspelled model definitions; the modules below repair those defects while preserving its custom DenseNet architecture. The current training code uses train-only augmentation, a stratified validation split, AdamW, and a learning-rate scheduler, with 10 epochs by default. These changes have not been run, so no accuracy or loss improvement is claimed. The historical one-epoch result below used the earlier pipeline and is not directly comparable. The Kaggle outputs and dataset are not included in this repository.
+> **Implementation status:** The original notebook had incomplete or misspelled model definitions. The `src/` modules fix those issues and keep the custom DenseNet architecture. The updated pipeline augments training images only and uses a stratified validation split, AdamW, and a learning-rate scheduler. It has not been run, so its effect on accuracy and loss is unknown. The one-epoch result below came from the earlier pipeline and is not directly comparable. The Kaggle outputs and dataset are not included in this repository.
 
 ## Table of Contents
 
@@ -22,34 +22,34 @@ A PyTorch image-classification project based on a custom DenseNet-style model fo
 
 ## Project Overview
 
-This project classifies rice leaf images by disease category using a custom DenseNet-style network in PyTorch. Its longer-term motivation is to support earlier disease awareness for farmers, especially in Central Vietnam.
+This project uses a custom DenseNet-style model in PyTorch to classify rice leaf images by disease. It also explores whether image classification could help farmers in Central Vietnam notice disease symptoms earlier.
 
-The intended use is decision support. This repository does not establish that the model is accurate on field images or that it can replace an agricultural expert.
+The model is intended to support decision-making. It has not been evaluated on field images and should not replace an agricultural expert.
 
 ## Problem Statement
 
-Rice leaf symptoms can be difficult to distinguish by visual inspection. The project explores whether a deep learning classifier can map a leaf image to one of the categories in the Paddy Doctor dataset. The competition provides labeled training images and a separate unlabeled test set.
+Rice leaf symptoms can be hard to distinguish by eye. This project tests whether a deep learning model can classify images using the labels in the Paddy Doctor dataset. The competition provides labeled training images and a separate test set without labels.
 
 ## Dataset
 
-The author selected [Paddy Doctor: Paddy Disease Classification](https://www.kaggle.com/competitions/paddy-disease-classification). Kaggle documents 10,407 labeled training images across ten categories and 3,469 competition test images. Its train.csv includes image_id, label, variety, and age; labeled images are organized under class-named folders. See the [competition data page](https://www.kaggle.com/competitions/paddy-disease-classification/data) and [official rules](https://www.kaggle.com/competitions/paddy-disease-classification/rules) for access and usage terms.
+The dataset comes from [Paddy Doctor: Paddy Disease Classification](https://www.kaggle.com/competitions/paddy-disease-classification). Kaggle lists 10,407 labeled training images across ten categories and 3,469 competition test images. The training images are stored in class-named folders, and `train.csv` contains `image_id`, `label`, `variety`, and `age`. Check the [competition data page](https://www.kaggle.com/competitions/paddy-disease-classification/data) and [official rules](https://www.kaggle.com/competitions/paddy-disease-classification/rules) for access and usage terms.
 
-The refactored loader expects the training images under train_images/. It uses torchvision.datasets.ImageFolder, whose class-to-index mapping follows the folder names. The mapping is saved to results/class_to_idx.json after training. The 3,469 competition test images are not used for local evaluation because their labels are not provided.
+The loader expects labeled images under `train_images/` and reads them with `torchvision.datasets.ImageFolder`. It saves the class-to-index mapping to `results/class_to_idx.json` after training. The competition test images have no labels, so the project does not use them for local evaluation.
 
-The training pipeline creates a class-stratified split with int(0.2 * N) validation images and the remainder for training, using seed 123. No dataset is included in the repository; see [data/README.md](data/README.md).
+The training pipeline sets aside `int(0.2 * N)` images for validation and uses the rest for training. The split is stratified by class and uses seed 123. The dataset is not included in this repository; see [data/README.md](data/README.md).
 
 ## Technologies Used
 
 - Python
 - PyTorch
 - Torchvision
-- Matplotlib (imported by the original notebook; no plot is generated by the refactored scripts)
+- Matplotlib (used in the original notebook; the refactored scripts do not generate plots)
 
-The notebook did not record dependency versions or a Python version. requirements.txt therefore lists the observed packages without version pins. The refactored modules use Python 3.10+ type-hint syntax.
+The notebook does not record package versions or a Python version, so `requirements.txt` lists the packages without version pins. The refactored modules use type-hint syntax from Python 3.10 or newer.
 
 ## DenseNet Architecture
 
-The notebook defines a custom DenseNetB121 model; it does not use torchvision's pretrained DenseNet. Its dense blocks concatenate each layer's newly generated feature maps with the feature maps already present. Each bottleneck uses a 1x1 convolution to expand to 4 × growth_rate channels, then a 3x3 convolution to produce growth_rate new channels. Transition layers apply BatchNorm and ReLU, halve the channel count with a 1x1 convolution, and halve the feature-map dimensions with average pooling.
+The notebook defines a custom `DenseNetB121`; it does not use torchvision's pretrained DenseNet. Each dense block adds newly generated feature maps to those already in the block. A bottleneck first uses a 1x1 convolution to expand to `4 * growth_rate` channels, then a 3x3 convolution to produce `growth_rate` new channels. Between dense blocks, transition layers apply BatchNorm and ReLU, halve the channel count with a 1x1 convolution, and downsample with average pooling.
 
 | Component | Configuration read from the notebook |
 | --- | --- |
@@ -61,7 +61,7 @@ The notebook defines a custom DenseNetB121 model; it does not use torchvision's 
 | Head | Adaptive global average pooling → fully connected layer → raw logits |
 | Classes | 10, matching the competition training folders |
 
-The initial BatchNorm/ReLU-before-convolution order is retained as written in the notebook. The model code fixes the notebook's missing DenseBlock forward method, class-name mismatches, misspelled third transition references, and lowercase nn.linear typo. The notebook had no usable checkpoint, so compatibility with an existing trained weight file could not be checked.
+The model keeps the notebook's initial BatchNorm/ReLU/convolution order. The code also fixes its missing `DenseBlock` forward method, class-name mismatches, misspelled third-transition references, and lowercase `nn.linear` typo. The notebook contains no usable checkpoint, so compatibility with previously trained weights is unverified.
 
 ## Project Structure
 
@@ -84,7 +84,9 @@ The initial BatchNorm/ReLU-before-convolution order is retained as written in th
 └── requirements.txt
 ~~~
 
-Training creates results/densenetb121_paddy.pth, results/history.json, and results/class_to_idx.json. The original notebook is preserved at notebooks/original/qmanh.ipynb. The runnable notebook at notebooks/rice_densenet_training.ipynb includes single-image prediction and optional Kaggle test-set submission generation; there is no separate predict.py module.
+The repository root also contains `machine-learning-workflow.html`, a standalone diagram of a typical ML pipeline.
+
+Training creates `results/densenetb121_paddy.pth`, `results/history.json`, and `results/class_to_idx.json`. The original notebook remains at `notebooks/original/qmanh.ipynb`. The runnable notebook, `notebooks/rice_densenet_training.ipynb`, can predict one image and optionally create a Kaggle test-set submission. There is no separate `predict.py` module.
 
 ## Installation and Setup
 
@@ -99,7 +101,7 @@ Use Python 3.10 or newer. Place the competition files in the layout described in
 
 ## Training
 
-The training default is 10 epochs. The pipeline uses batch size 32, four data-loader workers, AdamW (learning rate 0.001, eps=1e-8, weight decay 1e-4), cross-entropy loss, and ReduceLROnPlateau to lower the learning rate when validation loss stops improving. Training images receive horizontal flips, small rotations, and mild color jitter. Training, validation, and inference images are resized to 224 × 224 and normalized with ImageNet channel statistics. The validation split is stratified and seeded. The saved checkpoint is the epoch with the highest validation accuracy; ties are resolved by lower validation loss. These are changes intended to help generalization, not guaranteed outcomes; the updated 10-epoch pipeline has not been run.
+Training runs for 10 epochs by default, with batch size 32 and four data-loader workers. It uses AdamW (learning rate 0.001, `eps=1e-8`, weight decay `1e-4`), cross-entropy loss, and `ReduceLROnPlateau`, which lowers the learning rate when validation loss stops improving. Only training images receive horizontal flips, small rotations, and mild color jitter. All images are resized to 224 x 224 and normalized with ImageNet channel statistics. The validation split is stratified and seeded. The code saves the checkpoint with the highest validation accuracy; if epochs tie, it keeps the one with lower validation loss. The updated pipeline has not been run, so the effect of these settings on generalization is unknown.
 
 Run from the repository root:
 
@@ -113,20 +115,20 @@ On Kaggle, pass the competition path you provided:
 python -m src.train --data-root /kaggle/input/competitions/paddy-disease-classification --epochs 10
 ~~~
 
-The code saves the best-validation-accuracy model state dictionary, epoch history (including the selected epoch), and class mapping under results/. The modular command-line entry point has not been run independently.
+The code saves the model state dictionary with the best validation accuracy, the epoch history (including the selected epoch), and the class mapping under `results/`. The modular command-line entry point has not been run independently.
 
 ## Evaluation Metrics and Results
 
-The training pipeline records cross-entropy loss and accuracy for the training and validation subsets after each epoch. src.evaluate evaluates the same seeded validation split and reports validation loss and accuracy.
+After each epoch, training records cross-entropy loss and accuracy for both subsets. `src.evaluate` uses the same seeded validation split and reports validation loss and accuracy.
 
-The historical Kaggle run of `notebooks/rice_densenet_training.ipynb` used CUDA and completed one epoch on the 10,407 labeled images. Its earlier random split contained 8,326 training images and 2,081 validation images. The custom model had 6,912,818 parameters. This run preceded the updated augmentation, stratified split, and optimizer settings documented above.
+An earlier Kaggle run of `notebooks/rice_densenet_training.ipynb` used CUDA and completed one epoch on the 10,407 labeled images. It used a random split with 8,326 training images and 2,081 validation images. The custom model had 6,912,818 parameters. This run predates the augmentation, stratified split, and optimizer settings now in the code.
 
 | Metric | Training | Validation |
 | --- | ---: | ---: |
 | Loss | 1.6619 | 1.3716 |
 | Accuracy | 42.37% | 56.37% |
 
-The epoch took 81.5 seconds. These are historical one-epoch holdout metrics, not a Kaggle leaderboard score and not results from the updated 10-epoch pipeline. The notebook also ran inference over the competition test images and created `submission.csv`; the file was not submitted to the competition. The checkpoint, history, class mapping, and submission remain in the Kaggle session at `/kaggle/working/results/`. They are not included in this repository. No new results are recorded because the updated training code has not been run.
+That epoch took 81.5 seconds. These are holdout metrics from the earlier one-epoch run, not a Kaggle leaderboard score or results from the updated 10-epoch pipeline. The notebook also ran inference on the competition test images and created `submission.csv`, but the file was not submitted. The checkpoint, history, class mapping, and submission remain in the Kaggle session at `/kaggle/working/results/`; they are not part of this repository. The updated code has not produced new results.
 
 After training, evaluate the saved model with:
 
@@ -138,7 +140,7 @@ python -m src.evaluate \
 
 ## Inference
 
-The notebook at `notebooks/rice_densenet_training.ipynb` provides `predict_image()` for one image and can create `submission.csv` when `test_images/` and `sample_submission.csv` are present. The Kaggle run exercised its test-set inference path. The submission file has not been uploaded here or submitted to Kaggle.
+The notebook at `notebooks/rice_densenet_training.ipynb` provides `predict_image()` for a single image. It can also create `submission.csv` when `test_images/` and `sample_submission.csv` are available. The Kaggle run exercised test-set inference, but its submission file has not been added here or submitted to Kaggle.
 
 ## Limitations
 
