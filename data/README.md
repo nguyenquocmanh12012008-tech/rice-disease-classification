@@ -1,12 +1,12 @@
-# Dataset Setup
+# Dataset setup
 
-The project uses the [Paddy Doctor: Paddy Disease Classification competition](https://www.kaggle.com/competitions/paddy-disease-classification) identified by the author. Review the [competition data page](https://www.kaggle.com/competitions/paddy-disease-classification/data) and [official rules](https://www.kaggle.com/competitions/paddy-disease-classification/rules) before downloading or using the data.
+This project uses data from the [Paddy Doctor: Paddy Disease Classification competition](https://www.kaggle.com/competitions/paddy-disease-classification). Before downloading or using it, review the [competition data page](https://www.kaggle.com/competitions/paddy-disease-classification/data) and [official rules](https://www.kaggle.com/competitions/paddy-disease-classification/rules).
 
-Kaggle documents 10,407 labeled training images across ten categories, plus 3,469 competition test images. The training images are organized in class-named folders. train.csv includes image_id, label, variety, and age; the competition test images do not have labels for local evaluation.
+Kaggle lists 10,407 labeled training images across ten categories and 3,469 test images. The training images are stored in class-named folders. `train.csv` contains `image_id`, `label`, `variety`, and `age`; the competition test images have no labels for local evaluation.
 
 ## Expected local layout
 
-Download and extract the competition files so the labeled folders are under train_images/:
+Download and extract the competition files so the labeled image folders are inside `train_images/`:
 
 ~~~text
 data/
@@ -22,8 +22,8 @@ data/
             └── <image-id>.jpg
 ~~~
 
-The training loader accepts the competition data root or its train_images/ subdirectory. It discovers folder names and class indices with torchvision.datasets.ImageFolder; the resulting mapping is written to results/class_to_idx.json after training.
+The training loader accepts either the competition data root or its `train_images/` directory. It reads class folders with `torchvision.datasets.ImageFolder` and saves the class-to-index mapping to `results/class_to_idx.json` after training.
 
-In the supplied Kaggle environment, the competition root is /kaggle/input/competitions/paddy-disease-classification. Pass this path with the --data-root option when running the training script there.
+On Kaggle, the competition root is `/kaggle/input/competitions/paddy-disease-classification`. Pass it to the training script with `--data-root`.
 
-Keep downloaded image data local. The repository's .gitignore excludes data/raw/ and model checkpoint files.
+Keep the downloaded images on your machine. `.gitignore` excludes `data/raw/` and model checkpoint files.
