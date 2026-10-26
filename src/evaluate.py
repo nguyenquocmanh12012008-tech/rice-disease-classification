@@ -1,4 +1,4 @@
-"""Validation evaluation for the custom DenseNet model."""
+"""Evaluate the custom DenseNet on the validation split."""
 
 import argparse
 from pathlib import Path
@@ -23,7 +23,7 @@ def evaluate_model(
     loss_function: nn.Module,
     device: torch.device,
 ) -> dict[str, float]:
-    """Return sample-weighted loss and accuracy without computing gradients."""
+    """Compute sample-weighted loss and accuracy without tracking gradients."""
     model.eval()
     running_loss = 0.0
     running_correct = 0
