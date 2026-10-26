@@ -1,11 +1,11 @@
-"""Custom DenseNet-B121-style model used by the original notebook."""
+"""Custom DenseNet-B121-style model based on the original notebook."""
 
 import torch
 from torch import nn
 
 
 class BottleneckLayer(nn.Module):
-    """Append growth_rate new feature maps to the existing feature maps."""
+    """Add growth_rate feature maps to the existing features."""
 
     def __init__(self, in_channels: int, filters: int, strides: int = 1) -> None:
         super().__init__()
@@ -34,7 +34,7 @@ class BottleneckLayer(nn.Module):
 
 
 class TransitionLayer(nn.Module):
-    """Normalize, halve channels, and downsample between dense blocks."""
+    """Normalize features, reduce channels, and downsample between dense blocks."""
 
     def __init__(self, in_channels: int) -> None:
         super().__init__()
@@ -54,7 +54,7 @@ class TransitionLayer(nn.Module):
 
 
 class DenseBlock(nn.Module):
-    """Apply bottleneck layers, concatenating each layer's features."""
+    """Run each bottleneck layer and concatenate its feature maps."""
 
     def __init__(
         self, in_channels: int, repetition: int = 1, growth_rate: int = 32
@@ -76,7 +76,7 @@ class DenseBlock(nn.Module):
 
 
 class DenseNetB121(nn.Module):
-    """Custom DenseNet variant defined by the project's original notebook."""
+    """Custom DenseNet variant based on the project's original notebook."""
 
     def __init__(
         self,
