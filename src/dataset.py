@@ -1,4 +1,4 @@
-"""ImageFolder dataset, balanced validation split, and image transforms."""
+"""Load ImageFolder data, create a class-stratified validation split, and apply image transforms."""
 
 from pathlib import Path
 
@@ -37,7 +37,7 @@ def _stratified_split_indices(
     validation_fraction: float,
     seed: int,
 ) -> tuple[list[int], list[int]]:
-    """Create a seeded, class-stratified split with an exact validation size."""
+    """Create a seeded, class-stratified split with exactly the requested number of validation images."""
     if not 0.0 < validation_fraction < 1.0:
         raise ValueError("validation_fraction must be between 0 and 1.")
     if not targets:
@@ -86,7 +86,7 @@ def build_data_loaders(
     validation_fraction: float = VALIDATION_FRACTION,
     split_seed: int = SPLIT_SEED,
 ):
-    """Build train-only augmented and deterministic validation loaders."""
+    """Build training and validation loaders, augmenting training images only."""
     train_images = resolve_train_images(data_root)
     training_transform = transforms.Compose(
         [
